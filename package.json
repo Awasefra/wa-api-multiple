@@ -1,0 +1,23 @@
+{
+  "name": "wa-api-multiple",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Awasefra/wa-api-multiple.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "api"
+  ],
+  "author": "awan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Awasefra/wa-api-multiple/issues"
+  },
+  "homepage": "https://github.com/Awasefra/wa-api-multiple#readme",
+  "description": ""
+}
