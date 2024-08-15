@@ -84,7 +84,6 @@ const createSession = function (id, description) {
   //get qrCode and send to socket io, qrCode will be use to login whatsapp
   client.on("qr", (qr) => {
     qrcode.toDataURL(qr, (err, url) => {
-        
       io.emit("qr", { id: id, src: url });
       io.emit("message", { id: id, text: "QR Code received, scan please!" });
     });
@@ -149,6 +148,14 @@ const createSession = function (id, description) {
     });
     setFileOfSessions(savedSessions);
   }
+  // Tambahkan listener untuk mendeteksi pesan !ping
+  client.on("message", (msg) => {
+    if (msg.body == "!bro") {
+      msg.reply("okeyyyy");
+    } else if (msg.body == "skuy") {
+      msg.reply("helo ma bradah");
+    }
+  });
 };
 
 const init = function (socket) {
@@ -178,11 +185,9 @@ init();
 
 // Socket IO: for UI server, we use to scan code dll
 io.on("connection", function (socket) {
-    
   init(socket);
 
   socket.on("create-session", function (data) {
-    
     console.log("Create session: " + data.id);
     createSession(data.id, data.description);
   });
