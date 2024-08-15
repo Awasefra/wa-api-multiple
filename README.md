@@ -57,3 +57,6 @@ npm start
 
 7. Test That Using Wa, chat number is linked to whatsapp api using !bro or skuy. then will reply like that:
 ![test](https://github.com/user-attachments/assets/2306701e-827a-43cc-8d7b-50d95d374e58)
+
+## Important!!!
+I had bug when develop this, u can see my issue at Tab Issue and select the issue that i pinned. Or u can access that link https://github.com/Awasefra/wa-api-multiple/issues/1#issue-2468735267
