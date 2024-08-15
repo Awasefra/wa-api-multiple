@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp API</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        padding: 20px;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+
+      h1,
+      h3 {
+        color: #007bff;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .form-container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      .form-container label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+
+      .form-container input,
+      .form-container textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-container input:focus,
+      .form-container textarea:focus {
+        border-color: #007bff;
+        outline: none;
+      }
+
+      .add-client-btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .add-client-btn:hover {
+        background-color: #218838;
+      }
+
+      .client-container {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        min-height: 200px; /* Adjust as needed */
+      }
+
+      .client {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        max-width: 100%; /* Prevent overflow */
+      }
+
+      .client:hover {
+        transform: translateY(-5px);
+      }
+
+      #qrcode {
+        display: none;
+        width: 100%;
+        margin: 15px 0;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+
+      ul.logs {
+        max-height: 150px;
+        padding: 15px;
+        margin-top: 10px;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        overflow-y: auto;
+        color: #666;
+        font-size: 14px;
+      }
+
+      ul.logs li:first-child {
+        color: #28a745;
+        font-weight: 700;
+      }
+
+      .hide {
+        display: none;
+      }
+
+      p {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <h1>WhatsApp Multiple Api</h1>
+      <div class="form-container">
+        <label for="client-id">ID</label>
+        <input type="text" id="client-id" placeholder="Masukkan ID" />
+
+        <label for="client-description">Deskripsi</label>
+        <textarea
+          rows="3"
+          id="client-description"
+          placeholder="Masukkan deskripsi"
+        ></textarea>
+
+        <button class="add-client-btn">Tambah Client</button>
+      </div>
+
+      <div class="client-container">
+        <div class="client hide">
+          <h3 class="title"></h3>
+          <p class="description"></p>
+          <img src="" alt="QR Code" id="qrcode" />
+          <h3>Logs:</h3>
+          <ul class="logs"></ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        var socket = io();
+
+        // Ketika button tambah diklik
+        $(".add-client-btn").click(function () {
+          var clientId = $("#client-id").val();
+          var clientDescription = $("#client-description").val();
+          var clientClass = "client-" + clientId;
+          var template = $(".client")
+            .first()
+            .clone()
+            .removeClass("hide")
+            .addClass(clientClass);
+
+          template.find(".title").text(clientId);
+          template.find(".description").text(clientDescription);
+          template.find(".logs").append($("<li>").text("Connecting..."));
+          $(".client-container").append(template);
+
+          socket.emit("create-session", {
+            id: clientId,
+            description: clientDescription,
+          });
+        });
+
+        socket.on("init", function (data) {
+          $(".client-container .client").not(":first").remove();
+          console.log(data);
+          data.forEach((session) => {
+            var clientId = session.id;
+            var clientDescription = session.description;
+            var clientClass = "client-" + clientId;
+            var template = $(".client")
+              .first()
+              .clone()
+              .removeClass("hide")
+              .addClass(clientClass);
+
+            template.find(".title").text(clientId);
+            template.find(".description").text(clientDescription);
+            $(".client-container").append(template);
+
+            if (session.ready) {
+              $(`.client.${clientClass} .logs`).prepend(
+                $("<li>").text("WhatsApp is ready!")
+              );
+            } else {
+              $(`.client.${clientClass} .logs`).prepend(
+                $("<li>").text("Connecting...")
+              );
+            }
+          });
+        });
+
+        socket.on("remove-session", function (id) {
+          $(`.client.client-${id}`).remove();
+        });
+
+        socket.on("message", function (data) {
+          $(`.client.client-${data.id} .logs`).prepend(
+            $("<li>").text(data.text)
+          );
+        });
+
+        socket.on("qr", function (data) {
+          $(`.client.client-${data.id} #qrcode`).attr("src", data.src).show();
+        });
+
+        socket.on("ready", function (data) {
+          $(`.client.client-${data.id} #qrcode`).hide();
+        });
+
+        socket.on("authenticated", function (data) {
+          $(`.client.client-${data.id} #qrcode`).hide();
+        });
+      });
+    </script>
+  </body>
+</html>
