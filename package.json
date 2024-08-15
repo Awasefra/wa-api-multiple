@@ -19,5 +19,8 @@
     "url": "https://github.com/Awasefra/wa-api-multiple/issues"
   },
   "homepage": "https://github.com/Awasefra/wa-api-multiple#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
 }
