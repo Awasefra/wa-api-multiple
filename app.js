@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
 });
 
 const sessions = [];
-const FILE_OF_SESSIONS = "./wa-session.json";
+const FILE_OF_SESSIONS = "./.wa-session.json";
 const SESSIONS_DIR = "./.wwebjs_auth/";
 
 //check file session exist or not, if not will create file session
