@@ -10,7 +10,7 @@ This is a whatsapp api for send message.
 1. Clone repositori ini:
 
     ```
-    git clone https://github.com/Awasefra/wa-api.git
+    git clone https://github.com/Awasefra/wa-api-multiple.git
     ```
 
 2. Arahkan ke direktori proyek:
