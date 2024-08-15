@@ -6,6 +6,7 @@ const http = require("http");
 require("dotenv").config();
 const port = process.env.PORT;
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
 
 const sessions = [];
 const FILE_OF_SESSIONS = "./wa-session.json";
+const SESSIONS_DIR = "./.wwebjs_auth/";
 
 //check file session exist or not, if not will create file session
 const createFileOfSessionWhenNotExist = function () {
@@ -55,6 +57,39 @@ const setFileOfSessions = function (sessions) {
 //get file session
 const getFileOfSessions = function () {
   return JSON.parse(fs.readFileSync(FILE_OF_SESSIONS));
+};
+
+//clean session folder who was not login
+const cleanUpSessions = function () {
+  const savedSessions = getFileOfSessions();
+  const existingSessionIds = savedSessions.map((sess) => `session-${sess.id}`);
+
+  // Baca direktori session
+  fs.readdir(SESSIONS_DIR, (err, files) => {
+    if (err) {
+      console.error(`Unable to scan directory: ${err}`);
+      return;
+    }
+
+    files.forEach((file) => {
+      if (!existingSessionIds.includes(file)) {
+        // Hapus folder yang tidak ada di session file
+        fs.rm(
+          path.join(SESSIONS_DIR, file),
+          { recursive: true, force: true },
+          (err) => {
+            if (err) {
+              console.error(
+                `Error removing session directory ${file}: ${err.message}`
+              );
+            } else {
+              console.log(`Session directory ${file} has been removed.`);
+            }
+          }
+        );
+      }
+    });
+  });
 };
 
 const createSession = function (id, description) {
@@ -179,6 +214,7 @@ const init = function (socket) {
       });
     }
   }
+  cleanUpSessions();
 };
 
 init();
