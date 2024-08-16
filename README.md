@@ -26,7 +26,10 @@ This is a whatsapp api for send message.
     ```bash
     npm install
     ```
-
+4. Copy .env.example to .env
+   ```bash
+   cp .env.example .env
+   ```
 
 ## run project
 
