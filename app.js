@@ -11,6 +11,7 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const {numberFormatter} = require("./helpers/formatter") 
 
 app.use(express.json());
 app.use(
@@ -227,6 +228,50 @@ io.on("connection", function (socket) {
     console.log("Create session: " + data.id);
     createSession(data.id, data.description);
   });
+});
+
+// Send message
+app.post("/send-message", async (req, res) => {
+  console.log(req);
+
+  const sender = req.body.sender;
+  const phoneNumber = numberFormatter(req.body.phoneNumber);
+  const message = req.body.message;
+
+  const client = sessions.find((sess) => sess.id == sender)?.client;
+
+  // Check sender exist and active
+  if (!client) {
+    return res.status(422).json({
+      status: false,
+      message: `The sender: ${sender} is not found!`,
+    });
+  }
+
+  //check number is registered or not
+  const isRegisteredNumber = await client.isRegisteredUser(phoneNumber);
+
+  if (!isRegisteredNumber) {
+    return res.status(422).json({
+      status: false,
+      message: "Unregistered Number",
+    });
+  }
+
+  client
+    .sendMessage(phoneNumber, message)
+    .then((response) => {
+      res.status(200).json({
+        status: true,
+        response: response,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        status: false,
+        response: err,
+      });
+    });
 });
 
 server.listen(port, function () {
