@@ -11,6 +11,8 @@ const path = require("path");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const { numberFormatter } = require("./helpers/formatter");
+const { body, validationResult } = require("express-validator");
 
 app.use(express.json());
 app.use(
@@ -228,6 +230,67 @@ io.on("connection", function (socket) {
     createSession(data.id, data.description);
   });
 });
+
+// Send message
+app.post(
+  "/send-message",
+  [
+    body("sender").notEmpty(),
+    body("phoneNumber").notEmpty(),
+    body("message").notEmpty(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req).formatWith(({ msg }) => {
+      return msg;
+    });
+
+    if (!errors.isEmpty()) {
+      return res.status(422).json({
+        status: false,
+        message: errors.mapped(),
+      });
+    }
+    //sender is id client
+    const sender = req.body.sender;
+    const phoneNumber = numberFormatter(req.body.phoneNumber);
+    const message = req.body.message;
+
+    const client = sessions.find((sess) => sess.id == sender)?.client;
+
+    // Check sender exist and active
+    if (!client) {
+      return res.status(422).json({
+        status: false,
+        message: `The sender: ${sender} is not found!`,
+      });
+    }
+
+    //check number is registered or not
+    const isRegisteredNumber = await client.isRegisteredUser(phoneNumber);
+
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        message: "Unregistered Number",
+      });
+    }
+
+    client
+      .sendMessage(phoneNumber, message)
+      .then((response) => {
+        res.status(200).json({
+          status: true,
+          response: response,
+        });
+      })
+      .catch((err) => {
+        res.status(500).json({
+          status: false,
+          response: err,
+        });
+      });
+  }
+);
 
 server.listen(port, function () {
   console.log(
